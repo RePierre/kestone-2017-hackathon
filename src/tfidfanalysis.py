@@ -35,5 +35,6 @@ def search(term):
 
 
 def print_results(results):
-    for t in results:
-        print('%s\t%f' % t)
+    for file, score in results:
+        line = '{:s} {:f}'.format(file, score)
+        print(line)
