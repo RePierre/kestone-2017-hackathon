@@ -34,7 +34,15 @@ def search(term):
     return ordered
 
 
-def print_results(results):
+def print_results(results,
+                  topic,
+                  hackathonformat=False,
+                  team='Data Wizards'):
+    rank = 1
     for file, score in results:
-        line = '{:s} {:f}'.format(file, score)
+        if hackathonformat:
+            line = '{:d} Q0 {:s} {:d} {:s}'.format(topic, file, rank, team)
+        else:
+            line = '{:s} {:f}'.format(file, score)
         print(line)
+        rank += 1
