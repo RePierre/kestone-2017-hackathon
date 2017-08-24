@@ -102,3 +102,6 @@ ENV/
 
 # Local folders
 data/
+
+#Emacs backup files
+*~
