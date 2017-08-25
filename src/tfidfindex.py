@@ -45,6 +45,8 @@ class TfidfIndex:
         print('Done.')
 
     def search(self, term):
+        if term not in self.vocabulary:
+            return []
         term_index = self.vocabulary[term]
         freq_matrix_slice = self.tfidf_index[:, term_index]
         documents = [(self.filenames[i], freq_matrix_slice[i, 0])
