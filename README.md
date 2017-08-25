@@ -4,3 +4,4 @@
 - [`sklearn`](http://scikit-learn.org/stable/index.html) for **TF-IDF** anaysis
 - [`nltk`](http://www.nltk.org) for text processing
   - `punkt` package for tokenization
+  - `corpora/stopwords`
