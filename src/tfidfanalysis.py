@@ -1,48 +1,54 @@
 #!/usr/bin/env python3
 import glob
-import os
+from os.path import basename
+from os.path import splitext
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
-glob_pattern = '../data/metadata*/**/*.txt'
 
-files = list(glob.iglob(glob_pattern))
-count_vectorizer = CountVectorizer(input='filename')
-count_vect = count_vectorizer.fit_transform(files)
+class TfidfIndex:
+    def __init__(self):
+        self._document_corpus = None
+        self._count_vectorizer = CountVectorizer(input='filename')
+        self._tfidf_transformer = TfidfTransformer(use_idf=True)
+        self._tfidf_index = None
+        self._filenames = None
 
-idx_radium = count_vectorizer.vocabulary_['radium']
-print("Trained counts shape: ")
-print(count_vect.shape)
-print("Index of 'radium': %s" % (idx_radium))
+    @property
+    def vocabulary(self):
+        return self._count_vectorizer.vocabulary_
 
-tf_transformer = TfidfTransformer(use_idf=True)
-train_tfidf = tf_transformer.fit_transform(count_vect)
-train_tfidf.shape
+    @property
+    def tfidf_index(self):
+        return self._tfidf_index
 
-radium_related = train_tfidf[:, idx_radium]
-[(file, score) for file, score in zip(files, radium_related)]
+    @property
+    def corpus(self):
+        return self._document_corpus
 
+    @property
+    def filenames(self):
+        if self._filenames is None:
+            basenames = [basename(file) for file in self._document_corpus]
+            names = [splitext(name) for name in basenames]
+            self._filenames = [name for name, _ in names]
+        return self._filenames
 
-def search(term):
-    term_index = count_vectorizer.vocabulary_[term]
-    frequency_matrix_slice = train_tfidf[:, term_index]
-    filenames = [os.path.split(file)[1] for file in files]
-    documents = [(filenames[i], frequency_matrix_slice[i, 0])
-                 for i in range(len(files))
-                 if frequency_matrix_slice[i, 0] > 0]
-    ordered = sorted(documents, key=lambda doc: doc[1], reverse=True)
-    return ordered
+    def index(self, glob_pattern='../data/metadata*/**/*.txt'):
+        print('Loading document corpus...')
+        self._document_corpus = list(glob.iglob(glob_pattern))
+        print('Done.')
+        print('Building TF-IDF index...')
+        count_vect = self._count_vectorizer.fit_transform(
+            self._document_corpus)
+        self._tfidf_index = self._tfidf_transformer.fit_transform(count_vect)
+        print('Done.')
 
-
-def print_results(results,
-                  topic,
-                  hackathonformat=False,
-                  team='Data Wizards'):
-    rank = 1
-    for file, score in results:
-        if hackathonformat:
-            line = '{:d} Q0 {:s} {:d} {:s}'.format(topic, file, rank, team)
-        else:
-            line = '{:s} {:f}'.format(file, score)
-        print(line)
-        rank += 1
+    def search(self, term):
+        term_index = self.vocabulary[term]
+        freq_matrix_slice = self.tfidf_index[:, term_index]
+        documents = [(self.filenames[i], freq_matrix_slice[i, 0])
+                     for i in range(len(self.corpus))
+                     if freq_matrix_slice[i, 0] > 0]
+        results = sorted(documents, key=lambda doc: doc[1], reverse=True)
+        return results
