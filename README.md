@@ -5,3 +5,4 @@
 - [`nltk`](http://www.nltk.org) for text processing
   - `punkt` package for tokenization
   - `corpora/stopwords`
+- [`numpy`](http://www.numpy.org) for matrix manipulation
